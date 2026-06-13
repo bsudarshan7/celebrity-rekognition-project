@@ -2,12 +2,18 @@ import json
 import boto3
 from datetime import datetime
 
+print("=== Celebrity Detector Lambda Version 2 - GitHub Actions Deployment ===")
+
 rekognition = boto3.client('rekognition')
 dynamodb = boto3.resource('dynamodb')
 
 table = dynamodb.Table('CelebrityDetection')
 
+
 def lambda_handler(event, context):
+
+    print("GitHub Actions deployment successful")
+    print("Lambda execution started")
 
     try:
 
@@ -16,7 +22,8 @@ def lambda_handler(event, context):
             bucket = record['s3']['bucket']['name']
             image_name = record['s3']['object']['key']
 
-            print("Processing Image:", image_name)
+            print(f"Processing Image: {image_name}")
+            print(f"Bucket Name: {bucket}")
 
             response = rekognition.recognize_celebrities(
                 Image={
@@ -46,6 +53,9 @@ def lambda_handler(event, context):
 
                 detection_status = "Celebrity Detected"
 
+                print(f"Celebrity Found: {celebrity_name}")
+                print(f"Confidence: {confidence}")
+
             # No celebrity detected
             else:
 
@@ -54,6 +64,8 @@ def lambda_handler(event, context):
                 celebrity_url = "No URL Available"
 
                 detection_status = "No Celebrity Detected"
+
+                print("No celebrity detected")
 
             # Store data in DynamoDB
             table.put_item(
@@ -67,7 +79,7 @@ def lambda_handler(event, context):
                 }
             )
 
-            print("Stored:", image_name)
+            print(f"Successfully stored data for: {image_name}")
 
         return {
             'statusCode': 200,
@@ -76,7 +88,7 @@ def lambda_handler(event, context):
 
     except Exception as e:
 
-        print("Error:", str(e))
+        print(f"Error: {str(e)}")
 
         return {
             'statusCode': 500,
